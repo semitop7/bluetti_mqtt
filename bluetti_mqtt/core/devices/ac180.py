@@ -1,8 +1,15 @@
+from enum import Enum, unique
 from typing import List
 from ..commands import ReadHoldingRegisters
 from .bluetti_device import BluettiDevice
 from .struct import DeviceStruct
 
+
+@unique
+class ChargingMode(Enum):
+    STANDARD = 0
+    SILENT = 1
+    TURBO = 2
 
 class AC180(BluettiDevice):
     def __init__(self, address: str, sn: str):
@@ -20,12 +27,25 @@ class AC180(BluettiDevice):
         self.struct.add_version_field('bcu_version', 6175)
         self.struct.add_uint_field('total_battery_percent', 102)
 
+        #Input Details (1100 - 1300)
+        self.struct.add_decimal_field('ac_input_voltage', 1314, 1)
+
         #Power IO
         self.struct.add_uint_field('output_mode', 123)  #32 when both loads off, 40 when AC is on, 48 when DC is on, 56 when both on
         self.struct.add_uint_field('dc_output_power', 140)
         self.struct.add_uint_field('ac_output_power', 142)
         self.struct.add_uint_field('dc_input_power', 144)
-        self.struct.add_uint_field('ac_input_power', 146)  #this is a guess because I didn't have a PV module handy to test
+        self.struct.add_uint_field('ac_input_power', 146)
+
+        # Controls (2000)
+        self.struct.add_bool_field('ac_output_on_switch', 2011)
+        self.struct.add_bool_field('dc_output_on_switch', 2012)
+        self.struct.add_bool_field('silent_charging_on', 2020) # to be able to choose between normal and silent charging modes
+        self.struct.add_bool_field('power_lifting_on', 2021)
+        self.struct.add_enum_field('charging_mode', 2020, ChargingMode) # can't be set from HA, custom switch needed
+
+        # Controls (2200)
+        self.struct.add_bool_field('grid_enhancement_mode_on', 2225)
 
         #History
         # self.struct.add_decimal_field('power_generation', 154, 1)  # Total power generated since last reset (kwh)
@@ -42,7 +62,17 @@ class AC180(BluettiDevice):
     @property
     def polling_commands(self) -> List[ReadHoldingRegisters]:
         return [
-            ReadHoldingRegisters(100, 62),
+            ReadHoldingRegisters(140, 1),
+            ReadHoldingRegisters(142, 1),
+            ReadHoldingRegisters(144, 1),
+            ReadHoldingRegisters(146, 1),
+            ReadHoldingRegisters(1202, 1),
+            ReadHoldingRegisters(1314, 1),
+            ReadHoldingRegisters(2011, 1),
+            ReadHoldingRegisters(2012, 1),
+            ReadHoldingRegisters(2020, 1),
+            ReadHoldingRegisters(2021, 1),
+            ReadHoldingRegisters(2225, 1),
         ]
 
     @property
@@ -65,3 +95,7 @@ class AC180(BluettiDevice):
             ReadHoldingRegisters(6300, 52),
             ReadHoldingRegisters(7000, 5)
         ]
+
+    @property
+    def writable_ranges(self) -> List[range]:
+        return [range(2000, 2225)]
