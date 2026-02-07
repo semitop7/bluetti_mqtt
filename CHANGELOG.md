@@ -2,6 +2,10 @@
 
 ## FUTURE
 
+## 0.16.0
+
+* Fix support ghcr.io/hassio-addons/base-python/${arch}:18.0.0 image
+
 ## 0.15.10
 
 * Update aiomqtt to 2.5.0, bleak to 2.1.1
