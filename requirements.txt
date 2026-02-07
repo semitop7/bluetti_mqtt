@@ -1,5 +1,5 @@
-aiomqtt==2.4.0
-bleak==1.1.1
+aiomqtt==2.5.0
+bleak==2.1.1
 crcmod==1.7
 dbus-next==0.2.3
 paho-mqtt==2.1.0

@@ -2,6 +2,10 @@
 
 ## FUTURE
 
+## 0.15.10
+
+* Update aiomqtt to 2.5.0, bleak to 2.1.1
+
 ## 0.15.9
 
 * update device name regexp
